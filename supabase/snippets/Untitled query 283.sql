@@ -1,0 +1,1 @@
+CREATE POLICY "Allow all storage" ON storage.objects FOR ALL USING (true) WITH CHECK (true);
