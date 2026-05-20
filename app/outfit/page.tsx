@@ -21,11 +21,13 @@ interface ClothingItem {
 export default function OutfitPage() {
   const [loading, setLoading] = useState(false)
   const [weather, setWeather] = useState('')
+  const [occasion, setOccasion] = useState('')
   const [suggestion, setSuggestion] = useState<OutfitSuggestion | null>(null)
   const [matchedItems, setMatchedItems] = useState<ClothingItem[]>([])
   const [userId, setUserId] = useState<string | null>(null)
   const [error, setError] = useState('')
   const router = useRouter()
+  const [mode, setMode] = useState<'weather' | 'occasion'>('weather')
 
   useEffect(() => { checkUser() }, [])
 
@@ -44,7 +46,7 @@ export default function OutfitPage() {
       const res = await fetch('/api/outfit-suggest', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId, lat, lon })
+        body: JSON.stringify({ userId, lat, lon, occasion: mode === 'occasion' ? occasion : '' })
       })
       const data = await res.json()
       if (data.error) setError(data.error)
@@ -86,9 +88,51 @@ export default function OutfitPage() {
           <p style={{ color: '#9a8a80', fontSize: '13px', marginTop: '8px' }}>AI picks an outfit from your closet based on today's weather</p>
         </div>
 
-        <button className="suggest-btn" onClick={getSuggestion} disabled={loading}>
-          {loading ? '✨ Styling your outfit...' : '🌤 Get today\'s outfit'}
-        </button>
+        <div style={{ display: 'flex', gap: '10px', marginBottom: '1rem' }}>
+            <button
+                onClick={() => setMode('weather')}
+                style={{
+                flex: 1, padding: '14px', borderRadius: '14px', border: '1.5px solid',
+                borderColor: mode === 'weather' ? '#c17b5c' : '#d9cfc7',
+                background: mode === 'weather' ? '#fdf0e8' : '#fff',
+                color: mode === 'weather' ? '#c17b5c' : '#7a6a60',
+                fontFamily: 'Jost, sans-serif', fontSize: '14px', cursor: 'pointer', transition: 'all 0.2s'
+                }}
+            >
+                🌤 By weather
+            </button>
+            <button
+                onClick={() => setMode('occasion')}
+                style={{
+                flex: 1, padding: '14px', borderRadius: '14px', border: '1.5px solid',
+                borderColor: mode === 'occasion' ? '#c17b5c' : '#d9cfc7',
+                background: mode === 'occasion' ? '#fdf0e8' : '#fff',
+                color: mode === 'occasion' ? '#c17b5c' : '#7a6a60',
+                fontFamily: 'Jost, sans-serif', fontSize: '14px', cursor: 'pointer', transition: 'all 0.2s'
+                }}
+            >
+                🎉 By occasion
+            </button>
+            </div>
+
+            {mode === 'occasion' && (
+            <input
+                type="text"
+                placeholder="e.g. job interview, beach day, date night..."
+                value={occasion}
+                onChange={e => setOccasion(e.target.value)}
+                style={{
+                width: '100%', padding: '16px 20px', border: '1.5px solid #d9cfc7',
+                borderRadius: '14px', fontFamily: 'Jost, sans-serif', fontSize: '14px',
+                background: '#fff', color: '#2c2420', outline: 'none', marginBottom: '12px'
+                }}
+            />
+            )}
+
+            <button className="suggest-btn" onClick={getSuggestion} disabled={loading}>
+            {loading ? '✨ Styling your outfit...' : mode === 'weather' ? '🌤 Get today\'s outfit' : '🎉 Style this occasion'}
+            </button>
+        
 
         {error && <p style={{ color: '#e05555', fontSize: '13px', marginTop: '1rem' }}>{error}</p>}
 

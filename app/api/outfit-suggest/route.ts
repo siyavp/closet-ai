@@ -11,7 +11,7 @@ const groq = new Groq({ apiKey: process.env.GROQ_API_KEY })
 
 export async function POST(request: NextRequest) {
   try {
-    const { userId, lat, lon } = await request.json()
+    const { userId, lat, lon, occasion } = await request.json()
 
     // Get weather
     const weatherRes = await fetch(
@@ -22,6 +22,7 @@ export async function POST(request: NextRequest) {
     const desc = weather.current_condition[0].weatherDesc[0].value
     const city = weather.nearest_area[0].areaName[0].value
     const weatherDesc = `${temp}°C, ${desc} in ${city}`
+    const randomSeed = Math.floor(Math.random() * 1000)
 
     // Get user's clothes
     const { data: items } = await supabase
@@ -44,17 +45,19 @@ export async function POST(request: NextRequest) {
         {
           role: 'user',
           content: `You are a personal stylist. The weather today is: ${weatherDesc}.
-          
-Here are the clothes in my wardrobe:
-${closetSummary}
+        ${occasion ? `The occasion is: ${occasion}.` : ''}
 
-Suggest a complete outfit for today. Respond in JSON only, no markdown:
-{
-  "outfit_name": "short catchy name for the outfit",
-  "weather_note": "one sentence about why this works for the weather",
-  "items": ["exact item name 1", "exact item name 2"],
-  "styling_tip": "one quick styling tip"
-}`
+        Here are the clothes in my wardrobe:
+        ${closetSummary}
+        
+        Be creative and unpredictable. Seed: ${randomSeed}. Try different combinations each time — don't always pick the same items. Mix unexpected pieces together when the weather allows.
+        Suggest a complete outfit for today${occasion ? ` for a ${occasion}` : ''}. Respond in JSON only, no markdown:
+        {
+        "outfit_name": "short catchy name for the outfit",
+        "weather_note": "one sentence about why this works for the weather and occasion",
+        "items": ["exact item name 1", "exact item name 2"],
+        "styling_tip": "one quick styling tip"
+        }`
         }
       ]
     })
